@@ -56,7 +56,6 @@ const readAllDogs = (req, res, callback) => {
   Dog.find(callback).lean();
 };
 
-
 // function to find a specific cat on request.
 // Express functions always receive the request and the response.
 const readCat = (req, res) => {
@@ -200,8 +199,8 @@ const setDogName = (req, res) => {
   }
 
   // if required fields are good, then set name
-  //const name = `${req.body.petName}`;
-  //const name = `${req.body.petName} ${req.body.breedType}`;
+  // const name = `${req.body.petName}`;
+  // const name = `${req.body.petName} ${req.body.breedType}`;
 
   const dogData = {
     name: req.body.petName,
@@ -225,7 +224,6 @@ const setDogName = (req, res) => {
 
   return res;
 };
-
 
 // function to handle requests search for a name and return the object
 // controller functions in Express receive the full HTTP request
@@ -283,11 +281,11 @@ const searchDogName = (req, res) => {
       return res.json({ error: 'No dogs found' });
     }
 
-    //doc.updateSearchDog.age += 1;
-    doc.age++;
+    // doc.updateSearchDog.age += 1;
+    //doc.age += 1;
 
-    //const savePromise = doc.age.save();
-    //savePromise.then(() => res.json({ age: doc.age }));
+    // const savePromise = doc.age.save();
+    // savePromise.then(() => res.json({ age: doc.age }));
 
     // if a match, send the match back
     return res.json({ name: doc.name, breed: doc.breed, age: doc.age });

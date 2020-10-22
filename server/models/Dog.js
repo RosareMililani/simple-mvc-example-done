@@ -14,7 +14,7 @@ const DogSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    //unique: true,
+    // unique: true,
   },
 
   age: {
@@ -30,7 +30,6 @@ const DogSchema = new mongoose.Schema({
 
 });
 
-
 DogSchema.statics.findByDogName = (name, callback) => {
   const search = {
     name,
@@ -44,7 +43,6 @@ DogSchema.statics.findByDogName = (name, callback) => {
 // and the schema to make a model from.
 // Look at the model variable definition above for more details.
 DogModel = mongoose.model('Dog', DogSchema);
-
 
 // export our public properties
 module.exports.DogModel = DogModel;
