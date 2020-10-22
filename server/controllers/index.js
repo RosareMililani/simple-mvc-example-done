@@ -283,6 +283,12 @@ const searchDogName = (req, res) => {
       return res.json({ error: 'No dogs found' });
     }
 
+    //doc.updateSearchDog.age += 1;
+    doc.age++;
+
+    //const savePromise = doc.age.save();
+    //savePromise.then(() => res.json({ age: doc.age }));
+
     // if a match, send the match back
     return res.json({ name: doc.name, breed: doc.breed, age: doc.age });
   });
