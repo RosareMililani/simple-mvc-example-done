@@ -3,6 +3,7 @@ const models = require('../models');
 
 // get the Cat model
 const Cat = models.Cat.CatModel;
+const Dog = models.Dog.DogModel;
 
 // default fake data so that we have something to work with until we make a real Cat
 const defaultData = {
@@ -10,8 +11,14 @@ const defaultData = {
   bedsOwned: 0,
 };
 
+const defaultDataDog = {
+  name: 'unknown',
+  age: 0,
+};
+
 // object for us to keep track of the last Cat we made and dynamically update it sometimes
 let lastAdded = new Cat(defaultData);
+let lastAddedDog = new Dog(defaultDataDog);
 
 // function to handle requests to the main page
 // controller functions in Express receive the full HTTP request
@@ -45,6 +52,10 @@ const readAllCats = (req, res, callback) => {
   Cat.find(callback).lean();
 };
 
+const readAllDogs = (req, res, callback) => {
+  Dog.find(callback).lean();
+};
+
 
 // function to find a specific cat on request.
 // Express functions always receive the request and the response.
@@ -70,6 +81,19 @@ const readCat = (req, res) => {
   Cat.findByName(name1, callback);
 };
 
+const readDog = (req, res) => {
+  const name1 = req.query.name;
+
+  const callback = (err, doc) => {
+    if (err) {
+      return res.status(500).json({ err });
+    }
+
+    return res.json(doc);
+  };
+  Dog.findByDogName(name1, callback);
+};
+
 // function to handle requests to the page1 page
 // controller functions in Express receive the full HTTP request
 // and a pre-filled out response object to send
@@ -92,12 +116,6 @@ const hostPage1 = (req, res) => {
 // controller functions in Express receive the full HTTP request
 // and a pre-filled out response object to send
 const hostPage2 = (req, res) => {
-  // res.render takes a name of a page to render.
-  // These must be in the folder you specified as views in your main app.js file
-  // Additionally, you don't need .jade because you registered
-  // the file type in the app.js as jade. Calling res.render('index')
-  // actually calls index.jade. A second parameter of JSON can be
-  // passed into the jade to be used as variables with #{varName}
   res.render('page2');
 };
 
@@ -105,13 +123,20 @@ const hostPage2 = (req, res) => {
 // controller functions in Express receive the full HTTP request
 // and a pre-filled out response object to send
 const hostPage3 = (req, res) => {
-    // res.render takes a name of a page to render.
-    // These must be in the folder you specified as views in your main app.js file
-    // Additionally, you don't need .jade because you registered the file type
-    // in the app.js as jade. Calling res.render('index')
-    // actually calls index.jade. A second parameter of JSON can be passed
-    // into the jade to be used as variables with #{varName}
   res.render('page3');
+};
+
+const hostPage4 = (req, res) => {
+  const callback = (err, docs) => {
+    if (err) {
+      return res.status(500).json({ err }); // if error, return it
+    }
+
+    // return success
+    return res.render('page4', { dogs: docs });
+  };
+
+  readAllDogs(req, res, callback);
 };
 
 // function to handle get request to send the name
@@ -122,6 +147,7 @@ const getName = (req, res) => {
   // Since this sends back the data through HTTP
   // you can't send any more data to this user until the next response
   res.json({ name: lastAdded.name });
+  res.json({ name: lastAddedDog.name });
 };
 
 // function to handle a request to set the name
@@ -160,6 +186,38 @@ const setName = (req, res) => {
     lastAdded = newCat;
     // return success
     res.json({ name: lastAdded.name, beds: lastAdded.bedsOwned });
+  });
+
+  // if error, return it
+  savePromise.catch((err) => res.status(500).json({ err }));
+
+  return res;
+};
+
+const setDogName = (req, res) => {
+  if (!req.body.petName || !req.body.breedType || !req.body.age) {
+    return res.status(400).json({ error: 'name, breedType and age are all required' });
+  }
+
+  // if required fields are good, then set name
+  //const name = `${req.body.petName}`;
+  //const name = `${req.body.petName} ${req.body.breedType}`;
+
+  const dogData = {
+    name: req.body.petName,
+    breed: req.body.breedType,
+    age: req.body.age,
+  };
+
+  // create a new object of CatModel with the object to save
+  const newDog = new Dog(dogData);
+
+  // create new save promise for the database
+  const savePromise = newDog.save();
+
+  savePromise.then(() => {
+    lastAddedDog = newDog;
+    res.json({ name: lastAddedDog.name, breed: lastAddedDog.breed, age: lastAddedDog.age });
   });
 
   // if error, return it
@@ -208,6 +266,28 @@ const searchName = (req, res) => {
   });
 };
 
+const searchDogName = (req, res) => {
+  if (!req.query.name) {
+    return res.status(400).json({ error: 'Name is required to perform a search' });
+  }
+
+  return Dog.findByDogName(req.query.name, (err, doc) => {
+    // errs, handle them
+    if (err) {
+      return res.status(500).json({ err }); // if error, return it
+    }
+
+    // if no matches, let them know
+    // (does not necessarily have to be an error since technically it worked correctly)
+    if (!doc) {
+      return res.json({ error: 'No dogs found' });
+    }
+
+    // if a match, send the match back
+    return res.json({ name: doc.name, breed: doc.breed, age: doc.age });
+  });
+};
+
 // function to handle a request to update the last added object
 // this PURELY exists to show you how to update a model object
 // Normally for an update, you'd get data from the client,
@@ -234,6 +314,18 @@ const updateLast = (req, res) => {
   savePromise.catch((err) => res.status(500).json({ err }));
 };
 
+const updateSearchDog = (req, res) => {
+  lastAddedDog.age++;
+
+  const savePromise = lastAddedDog.save();
+
+  // send back the name as a success for now
+  savePromise.then(() => res.json({ name: lastAddedDog.name, age: lastAddedDog.age }));
+
+  // if save error, just return an error for now
+  savePromise.catch((err) => res.status(500).json({ err }));
+};
+
 // function to handle a request to any non-real resources (404)
 // controller functions in Express receive the full HTTP request
 // and get a pre-filled out response object to send
@@ -255,10 +347,15 @@ module.exports = {
   page1: hostPage1,
   page2: hostPage2,
   page3: hostPage3,
+  page4: hostPage4,
   readCat,
+  readDog,
   getName,
   setName,
+  setDogName,
   updateLast,
+  updateSearchDog,
   searchName,
+  searchDogName,
   notFound,
 };
