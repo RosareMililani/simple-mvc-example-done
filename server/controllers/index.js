@@ -281,14 +281,13 @@ const searchDogName = (req, res) => {
       return res.json({ error: 'No dogs found' });
     }
 
-    // doc.updateSearchDog.age += 1;
-    //doc.age += 1;
+    const updateAge = doc;
+    updateAge.age++;
 
-    // const savePromise = doc.age.save();
-    // savePromise.then(() => res.json({ age: doc.age }));
+    const savePromise = updateAge.save();
 
     // if a match, send the match back
-    return res.json({ name: doc.name, breed: doc.breed, age: doc.age });
+    return savePromise.then(() => res.json({ name: doc.name, breed: doc.breed, age: doc.age }));
   });
 };
 
@@ -313,18 +312,6 @@ const updateLast = (req, res) => {
 
   // send back the name as a success for now
   savePromise.then(() => res.json({ name: lastAdded.name, beds: lastAdded.bedsOwned }));
-
-  // if save error, just return an error for now
-  savePromise.catch((err) => res.status(500).json({ err }));
-};
-
-const updateSearchDog = (req, res) => {
-  lastAddedDog.age++;
-
-  const savePromise = lastAddedDog.save();
-
-  // send back the name as a success for now
-  savePromise.then(() => res.json({ name: lastAddedDog.name, age: lastAddedDog.age }));
 
   // if save error, just return an error for now
   savePromise.catch((err) => res.status(500).json({ err }));
@@ -358,7 +345,6 @@ module.exports = {
   setName,
   setDogName,
   updateLast,
-  updateSearchDog,
   searchName,
   searchDogName,
   notFound,
